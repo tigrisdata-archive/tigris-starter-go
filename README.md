@@ -35,32 +35,39 @@ go build .
 ### Insert users
 
 ```shell
-curl -X POST -v localhost:8080/users/create -H 'Content-Type: application/json' -d '{"id":1,"Name":"John","Balance":100}'
-curl -X POST -v localhost:8080/users/create -H 'Content-Type: application/json' -d '{"id":2,"Name":"Jane","Balance":200}'
+curl -X POST localhost:8080/users/create -H 'Content-Type: application/json' \
+	 -d '{"id":1,"Name":"John","Balance":100}'
+curl -X POST localhost:8080/users/create -H 'Content-Type: application/json' \
+	 -d '{"id":2,"Name":"Jane","Balance":200}'
 ```
 
 ### Insert products
 
 ```shell
-curl -X POST -v localhost:8080/products/create -H 'Content-Type: application/json' -d '{"id":1,"Name":"Avocado","Price":10,"Quantity":5}'
-curl -X POST -v localhost:8080/products/create -H 'Content-Type: application/json' -d '{"id":2,"Name":"Gold","Price":3000,"Quantity":1}'
+curl -X POST localhost:8080/products/create -H 'Content-Type: application/json' \
+	 -d '{"id":1,"Name":"Avocado","Price":10,"Quantity":5}'
+curl -X POST localhost:8080/products/create -H 'Content-Type: application/json' \
+	 -d '{"id":2,"Name":"Gold","Price":3000,"Quantity":1}'
 ```
 
 ### Place some orders
 
 #### Low balance
 ```shell
-curl -X POST -v localhost:8080/orders/create -H 'Content-Type: application/json' -d '{"id":1,"UserId":1, "Products" : [{"id":2,"Quantity":1}]}'
+curl -X POST localhost:8080/orders/create -H 'Content-Type: application/json' \
+	 -d '{"id":1,"UserId":1, "Products" : [{"id":2,"Quantity":1}]}'
 ```
 
 #### Low stock
 ```shell
-curl -X POST -v localhost:8080/orders/create -H 'Content-Type: application/json' -d '{"id":1,"UserId":1, "Products" : [{"id":1,"Quantity":1000}]}'
+curl -X POST localhost:8080/orders/create -H 'Content-Type: application/json' \
+	-d '{"id":1,"UserId":1, "Products" : [{"id":1,"Quantity":1000}]}'
 ```
 
 #### Successful purchase
 ```shell
-curl -X POST -v localhost:8080/orders/create -H 'Content-Type: application/json' -d '{"id":1,"UserId":1, "Products" : [{"id":1,"Quantity":5}]}'
+curl -X POST localhost:8080/orders/create -H 'Content-Type: application/json' \
+	 -d '{"id":1,"UserId":1, "Products" : [{"id":1,"Quantity":5}]}'
 ```
 
 ### Check the balances and stock

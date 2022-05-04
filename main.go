@@ -34,20 +34,15 @@ type Product struct {
 	Price    float64
 }
 
-type ECommerce struct {
-	users    User
-	orders   Order
-	products Product
-}
-
 func setupReadRoute[T interface{}](r *gin.Engine, db *tigris.Database, name string) {
 	r.GET(fmt.Sprintf("/%s/read/:id", name), func(c *gin.Context) {
-		coll := tigris.GetNamedCollection[T](db, name)
+		coll := tigris.GetCollection[T](db)
 
 		id, _ := strconv.Atoi(c.Param("id"))
 
-		var u T
-		if err := coll.ReadOne(c, filter.Eq("id", id), &u); err != nil {
+		u, err := coll.ReadOne(c, filter.Eq("id", id))
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			_ = c.Error(err)
 			return
 		}
@@ -58,14 +53,14 @@ func setupReadRoute[T interface{}](r *gin.Engine, db *tigris.Database, name stri
 
 func setupCRUDRoutes[T interface{}](r *gin.Engine, db *tigris.Database, name string) {
 	r.POST(fmt.Sprintf("/%s/create", name), func(c *gin.Context) {
-		coll := tigris.GetNamedCollection[T](db, name)
+		coll := tigris.GetCollection[T](db)
 
 		var u T
 		if err := c.Bind(&u); err != nil {
 			return
 		}
 
-		if err := coll.Insert(c, &u); err != nil {
+		if _, err := coll.Insert(c, &u); err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -76,11 +71,11 @@ func setupCRUDRoutes[T interface{}](r *gin.Engine, db *tigris.Database, name str
 	setupReadRoute[T](r, db, name)
 
 	r.DELETE(fmt.Sprintf("/%s/delete/:id", name), func(c *gin.Context) {
-		coll := tigris.GetNamedCollection[T](db, name)
+		coll := tigris.GetCollection[T](db)
 
 		id, _ := strconv.Atoi(c.Param("id"))
 
-		if err := coll.Delete(c, filter.Eq("id", id)); err != nil {
+		if _, err := coll.Delete(c, filter.Eq("id", id)); err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
 			return
 		}
@@ -99,20 +94,19 @@ func setupCreateOrderRoute(r *gin.Engine, db *tigris.Database) {
 		}
 
 		err := db.Tx(c, func(ctx context.Context, tx *tigris.Tx) error {
-			users := tigris.GetNamedTxCollection[User](tx, "users")
+			users := tigris.GetTxCollection[User](tx)
 
-			var u User
-			if err := users.ReadOne(ctx, filter.Eq("id", o.UserId), &u); err != nil {
+			u, err := users.ReadOne(ctx, filter.Eq("id", o.UserId))
+			if err != nil {
 				return err
 			}
 
-			products := tigris.GetNamedTxCollection[Product](tx, "products")
+			products := tigris.GetTxCollection[Product](tx)
 
 			orderTotal := 0.0
 
 			for _, v := range o.Products {
-				var p Product
-				err := products.ReadOne(ctx, filter.Eq("id", v.Id), &p)
+				p, err := products.ReadOne(ctx, filter.Eq("id", v.Id))
 				if err != nil {
 					return err
 				}
@@ -121,7 +115,7 @@ func setupCreateOrderRoute(r *gin.Engine, db *tigris.Database) {
 					return fmt.Errorf("low stock on product %v", p.Name)
 				}
 
-				err = products.Update(ctx, filter.Eq("id", v.Id),
+				_, err = products.Update(ctx, filter.Eq("id", v.Id),
 					update.Set("Quantity", p.Quantity-v.Quantity))
 				if err != nil {
 					return err
@@ -134,7 +128,7 @@ func setupCreateOrderRoute(r *gin.Engine, db *tigris.Database) {
 				return fmt.Errorf("low balance. order total %v", orderTotal)
 			}
 
-			err := users.Update(ctx, filter.Eq("id", o.UserId),
+			_, err = users.Update(ctx, filter.Eq("id", o.UserId),
 				update.Set("Balance", u.Balance-orderTotal))
 			if err != nil {
 				return err
@@ -155,7 +149,8 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	db, err := tigris.OpenDatabase[ECommerce](ctx, &config.Config{URL: "localhost:8081"})
+	db, err := tigris.OpenDatabase(ctx, &tigris.DatabaseConfig{Config: config.Config{URL: "localhost:8081"}},
+		"shop", &User{}, &Product{}, &Order{})
 	if err != nil {
 		panic(err)
 	}
