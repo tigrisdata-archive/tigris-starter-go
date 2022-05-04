@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	tigris "github.com/tigrisdata/tigris-client-go/client"
 	"github.com/tigrisdata/tigris-client-go/config"
 	"github.com/tigrisdata/tigris-client-go/filter"
+	"github.com/tigrisdata/tigris-client-go/tigris"
 	"github.com/tigrisdata/tigris-client-go/update"
 )
 
@@ -149,7 +149,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	db, err := tigris.OpenDatabase(ctx, &tigris.DatabaseConfig{Config: config.Config{URL: "localhost:8081"}},
+	db, err := tigris.OpenDatabase(ctx, &config.Database{Driver: config.Driver{URL: "localhost:8081"}},
 		"shop", &User{}, &Product{}, &Order{})
 	if err != nil {
 		panic(err)
