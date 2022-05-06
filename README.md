@@ -1,5 +1,10 @@
 # Tigris Getting Started Golang Application
 
+The code in this repo shows how to integrate Tigris with the backend of
+microservice architecture application, using simplified eCommerce service implementation.
+
+For more information please refer to: [Tigris documentation](https://docs.tigrisdata.com)
+
 ## Clone the repo
 
 ```shell
