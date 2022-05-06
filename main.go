@@ -89,13 +89,17 @@ func setupCRUDRoutes[T interface{}](r *gin.Engine, db *tigris.Database, name str
 func setupCreateOrderRoute(r *gin.Engine, db *tigris.Database) {
 	r.POST("/orders/create", func(c *gin.Context) {
 		var o Order
+		// Read the request body into o
 		if err := c.Bind(&o); err != nil {
 			return
 		}
 
+		// Perform the operations with users, products, orders
+		// to create the order transactionally
 		err := db.Tx(c, func(ctx context.Context, tx *tigris.Tx) error {
 			users := tigris.GetTxCollection[User](tx)
 
+			// Read the user with order's UserId
 			u, err := users.ReadOne(ctx, filter.Eq("id", o.UserId))
 			if err != nil {
 				return err
@@ -105,16 +109,20 @@ func setupCreateOrderRoute(r *gin.Engine, db *tigris.Database) {
 
 			orderTotal := 0.0
 
+			// For every product in the order
 			for _, v := range o.Products {
+				// Read the product with id=v.Id from the Tigris collection
 				p, err := products.ReadOne(ctx, filter.Eq("id", v.Id))
 				if err != nil {
 					return err
 				}
 
+				// Check that this product stock is enough
 				if p.Quantity < v.Quantity {
 					return fmt.Errorf("low stock on product %v", p.Name)
 				}
 
+				// Subtract the quantity required to satisfy the order
 				_, err = products.Update(ctx, filter.Eq("id", v.Id),
 					update.Set("Quantity", p.Quantity-v.Quantity))
 				if err != nil {
@@ -128,14 +136,18 @@ func setupCreateOrderRoute(r *gin.Engine, db *tigris.Database) {
 				return fmt.Errorf("low balance. order total %v", orderTotal)
 			}
 
+			// Subtract order total cost from user balance
 			_, err = users.Update(ctx, filter.Eq("id", o.UserId),
 				update.Set("Balance", u.Balance-orderTotal))
 			if err != nil {
 				return err
 			}
 
+			// If no error returned transaction will attempt to commit
 			return nil
 		})
+		// If no error returned here then all the modification transaction made has been
+		// successfully persisted in the Trigris collection
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
