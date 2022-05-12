@@ -9,9 +9,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tigrisdata/tigris-client-go/config"
+	"github.com/tigrisdata/tigris-client-go/fields"
 	"github.com/tigrisdata/tigris-client-go/filter"
 	"github.com/tigrisdata/tigris-client-go/tigris"
-	"github.com/tigrisdata/tigris-client-go/update"
 )
 
 type User struct {
@@ -43,7 +43,6 @@ func setupReadRoute[T interface{}](r *gin.Engine, db *tigris.Database, name stri
 		u, err := coll.ReadOne(c, filter.Eq("id", id))
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			_ = c.Error(err)
 			return
 		}
 
@@ -52,6 +51,8 @@ func setupReadRoute[T interface{}](r *gin.Engine, db *tigris.Database, name stri
 }
 
 func setupCRUDRoutes[T interface{}](r *gin.Engine, db *tigris.Database, name string) {
+	setupReadRoute[T](r, db, name)
+
 	r.POST(fmt.Sprintf("/%s/create", name), func(c *gin.Context) {
 		coll := tigris.GetCollection[T](db)
 
@@ -68,8 +69,6 @@ func setupCRUDRoutes[T interface{}](r *gin.Engine, db *tigris.Database, name str
 		c.JSON(http.StatusCreated, u)
 	})
 
-	setupReadRoute[T](r, db, name)
-
 	r.DELETE(fmt.Sprintf("/%s/delete/:id", name), func(c *gin.Context) {
 		coll := tigris.GetCollection[T](db)
 
@@ -84,7 +83,7 @@ func setupCRUDRoutes[T interface{}](r *gin.Engine, db *tigris.Database, name str
 	})
 }
 
-// Create an order transactionally,
+// Create an order in a transaction,
 // taking into account user balances and product stock.
 func setupCreateOrderRoute(r *gin.Engine, db *tigris.Database) {
 	r.POST("/orders/create", func(c *gin.Context) {
@@ -95,9 +94,9 @@ func setupCreateOrderRoute(r *gin.Engine, db *tigris.Database) {
 		}
 
 		// Perform the operations with users, products, orders
-		// to create the order transactionally
-		err := db.Tx(c, func(ctx context.Context, tx *tigris.Tx) error {
-			users := tigris.GetTxCollection[User](tx)
+		// to create the order in a transaction
+		err := db.Tx(c, func(ctx context.Context) error {
+			users := tigris.GetCollection[User](db)
 
 			// Read the user with order's UserId
 			u, err := users.ReadOne(ctx, filter.Eq("id", o.UserId))
@@ -105,13 +104,13 @@ func setupCreateOrderRoute(r *gin.Engine, db *tigris.Database) {
 				return err
 			}
 
-			products := tigris.GetTxCollection[Product](tx)
+			products := tigris.GetCollection[Product](db)
 
 			orderTotal := 0.0
 
 			// For every product in the order
 			for _, v := range o.Products {
-				// Read the product with id=v.Id from the Tigris collection
+				// Read the product with given ID from the Tigris collection
 				p, err := products.ReadOne(ctx, filter.Eq("id", v.Id))
 				if err != nil {
 					return err
@@ -124,7 +123,7 @@ func setupCreateOrderRoute(r *gin.Engine, db *tigris.Database) {
 
 				// Subtract the quantity required to satisfy the order
 				_, err = products.Update(ctx, filter.Eq("id", v.Id),
-					update.Set("Quantity", p.Quantity-v.Quantity))
+					fields.Set("Quantity", p.Quantity-v.Quantity))
 				if err != nil {
 					return err
 				}
@@ -138,7 +137,7 @@ func setupCreateOrderRoute(r *gin.Engine, db *tigris.Database) {
 
 			// Subtract order total cost from user balance
 			_, err = users.Update(ctx, filter.Eq("id", o.UserId),
-				update.Set("Balance", u.Balance-orderTotal))
+				fields.Set("Balance", u.Balance-orderTotal))
 			if err != nil {
 				return err
 			}
@@ -146,8 +145,8 @@ func setupCreateOrderRoute(r *gin.Engine, db *tigris.Database) {
 			// If no error returned transaction will attempt to commit
 			return nil
 		})
-		// If no error returned here then all the modification transaction made has been
-		// successfully persisted in the Trigris collection
+		// If no error returned here then all the modification, transaction made, has been
+		// successfully persisted in the Tigris collection
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return

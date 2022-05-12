@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/gin-gonic/gin v1.7.7
-	github.com/tigrisdata/tigris-client-go v1.0.0-alpha.12
+	github.com/tigrisdata/tigris-client-go v1.0.0-alpha.13
 )
 
 require (
