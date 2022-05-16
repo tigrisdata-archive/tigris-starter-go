@@ -98,6 +98,7 @@ Now check that John's balance and Avocado stock is changed accordingly.
 ```shell
 curl localhost:8080/users/read/1
 curl localhost:8080/products/read/1
+curl localhost:8080/orders/read/1
 ```
 
 # License

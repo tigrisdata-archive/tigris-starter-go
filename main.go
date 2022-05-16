@@ -109,7 +109,9 @@ func setupCreateOrderRoute(r *gin.Engine, db *tigris.Database) {
 			orderTotal := 0.0
 
 			// For every product in the order
-			for _, v := range o.Products {
+			for i := 0; i < len(o.Products); i++ {
+				v := &o.Products[i]
+
 				// Read the product with given ID from the Tigris collection
 				p, err := products.ReadOne(ctx, filter.Eq("id", v.Id))
 				if err != nil {
@@ -129,6 +131,9 @@ func setupCreateOrderRoute(r *gin.Engine, db *tigris.Database) {
 				}
 
 				orderTotal += p.Price * float64(v.Quantity)
+
+				// Remember purchase price in the being created order
+				v.Price = p.Price
 			}
 
 			if orderTotal > u.Balance {
@@ -142,8 +147,13 @@ func setupCreateOrderRoute(r *gin.Engine, db *tigris.Database) {
 				return err
 			}
 
+			orders := tigris.GetCollection[Order](db)
+
+			// Create the order
+			_, err = orders.Insert(ctx, &o)
+
 			// If no error returned transaction will attempt to commit
-			return nil
+			return err
 		})
 		// If no error returned here then all the modification, transaction made, has been
 		// successfully persisted in the Tigris collection
