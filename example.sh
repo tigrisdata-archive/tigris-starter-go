@@ -2,43 +2,41 @@
 
 set -e
 
+# tigris local up
+
 go build .
 ./tigris-starter-go >tigris-starter.log 2>&1 &
 PID=$!
 
 sleep 0.5
 
-curl -X POST localhost:8080/users/create -H 'Content-Type: application/json' \
-	 -d '{"Name":"John","Balance":100,"_id":"11111111-1111-1111-1111-111111111111"}'
-echo
-curl -X POST localhost:8080/users/create -H 'Content-Type: application/json' \
-	 -d '{"Name":"Jane","Balance":200,"_id":"22222222-2222-2222-2222-222222222222"}'
-echo
+# first parameter is path
+# second parameter is document to write
+request() {
+  curl -X POST "localhost:8080/$1" -H 'Content-Type: application/json' -d "$2"
+  echo
+}
 
-curl -X POST localhost:8080/products/create -H 'Content-Type: application/json' \
-	 -d '{"Name":"Avocado","Price":10,"Quantity":5,"_id":"11111111-1111-1111-1111-111111111111"}'
-echo
-curl -X POST localhost:8080/products/create -H 'Content-Type: application/json' \
-	 -d '{"Name":"Gold","Price":3000,"Quantity":1,"_id":"22222222-2222-2222-2222-222222222222"}'
-echo
+request users/create '{"Name":"John","Balance":100}' #Id=1
+request users/create '{"Name":"Jane","Balance":200}' #Id=2
 
-curl -X POST localhost:8080/orders/create -H 'Content-Type: application/json' \
-	 -d '{"UserId": "11111111-1111-1111-1111-111111111111", "Products" : [{"_id":"22222222-2222-2222-2222-222222222222","Quantity":1}]}' || true
-echo
+request products/create '{"Name":"Avocado","Price":10,"Quantity":5}' #Id=1
+request products/create '{"Name":"Gold","Price":3000,"Quantity":1}' #Id=2
 
-curl -X POST localhost:8080/orders/create -H 'Content-Type: application/json' \
-	-d '{"UserId":"11111111-1111-1111-1111-111111111111", "Products" : [{"_id":"11111111-1111-1111-1111-111111111111","Quantity":30}]}' || true
-echo
+#low balance
+request orders/create '{"UserId":1,"Products":[{"Id":2,"Quantity":1}]}' || true
+# low stock
+request orders/create '{"UserId":1,"Products":[{"Id":1,"Quantity":10}]}' || true
 
-curl -X POST localhost:8080/orders/create -H 'Content-Type: application/json' \
-	 -d '{"UserId":"11111111-1111-1111-1111-111111111111", "Products" : [{"_id":"11111111-1111-1111-1111-111111111111","Quantity":5}],"_id":"11111111-1111-1111-1111-111111111111"}'
-echo
+request orders/create '{"UserId":1,"Products":[{"Id":1,"Quantity":5}]}' #Id=1
 
-curl localhost:8080/users/read/11111111-1111-1111-1111-111111111111
+curl localhost:8080/users/read/1
 echo
-curl localhost:8080/products/read/11111111-1111-1111-1111-111111111111
+curl localhost:8080/products/read/1
 echo
-curl localhost:8080/orders/read/11111111-1111-1111-1111-111111111111
+curl localhost:8080/orders/read/1
 echo
 
 kill $PID
+
+#tigris local down

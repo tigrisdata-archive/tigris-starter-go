@@ -4,8 +4,7 @@ go 1.18
 
 require (
 	github.com/gin-gonic/gin v1.8.1
-	github.com/google/uuid v1.3.0
-	github.com/tigrisdata/tigris-client-go v1.0.0-alpha.17
+	github.com/tigrisdata/tigris-client-go v1.0.0-alpha.18
 )
 
 require (
@@ -22,6 +21,7 @@ require (
 	github.com/goccy/go-json v0.9.7 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/gnostic v0.6.9 // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.3 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect
