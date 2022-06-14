@@ -37,15 +37,18 @@ go build .
 
 ## Test the application in new terminal window
 
+Note: For repeatability of the following example, document IDs are hardcoded.
+To generate random ID, just remove "_id" field from the request.
+
 ### Insert users
 
 Run following commands to create two users: Jane and John
 
 ```shell
 curl -X POST localhost:8080/users/create -H 'Content-Type: application/json' \
-	 -d '{"id":1,"Name":"John","Balance":100}'
+	 -d '{"Name":"John","Balance":100,"_id":"11111111-1111-1111-1111-111111111111"}'
 curl -X POST localhost:8080/users/create -H 'Content-Type: application/json' \
-	 -d '{"id":2,"Name":"Jane","Balance":200}'
+	 -d '{"Name":"Jane","Balance":200,"_id":"22222222-2222-2222-2222-222222222222"}'
 ```
 
 ### Insert products
@@ -54,9 +57,9 @@ Run the following commands to insert two products: Avocado and Gold
 
 ```shell
 curl -X POST localhost:8080/products/create -H 'Content-Type: application/json' \
-	 -d '{"id":1,"Name":"Avocado","Price":10,"Quantity":5}'
+	 -d '{"Name":"Avocado","Price":10,"Quantity":5,"_id":"11111111-1111-1111-1111-111111111111"}'
 curl -X POST localhost:8080/products/create -H 'Content-Type: application/json' \
-	 -d '{"id":2,"Name":"Gold","Price":3000,"Quantity":1}'
+	 -d '{"Name":"Gold","Price":3000,"Quantity":1,"_id":"22222222-2222-2222-2222-222222222222"}'
 ```
 
 ### Place some orders
@@ -68,7 +71,7 @@ while John's balance is 100.
 
 ```shell
 curl -X POST localhost:8080/orders/create -H 'Content-Type: application/json' \
-	 -d '{"id":1,"UserId":1, "Products" : [{"id":2,"Quantity":1}]}'
+	 -d '{"UserId":"11111111-1111-1111-1111-111111111111", "Products" : [{"_id":"22222222-2222-2222-2222-222222222222","Quantity":1}],"_id":"11111111-1111-1111-1111-111111111111"}'
 ```
 
 #### Low stock
@@ -78,7 +81,7 @@ Jane's balance is 200.
 
 ```shell
 curl -X POST localhost:8080/orders/create -H 'Content-Type: application/json' \
-	-d '{"id":1,"UserId":2, "Products" : [{"id":1,"Quantity":30}]}'
+	-d '{"UserId":"11111111-1111-1111-1111-111111111111", "Products" : [{"_id":"11111111-1111-1111-1111-111111111111","Quantity":30}],"_id":"11111111-1111-1111-1111-111111111111"}'
 ```
 
 #### Successful purchase
@@ -88,7 +91,7 @@ John's balance is 100, which is enough for the purchase.
 
 ```shell
 curl -X POST localhost:8080/orders/create -H 'Content-Type: application/json' \
-	 -d '{"id":1,"UserId":1, "Products" : [{"id":1,"Quantity":5}]}'
+	 -d '{"UserId":"11111111-1111-1111-1111-111111111111", "Products" : [{"_id":"11111111-1111-1111-1111-111111111111","Quantity":5}],"_id":"11111111-1111-1111-1111-111111111111"}'
 ```
 
 ### Check the balances and stock
@@ -96,9 +99,9 @@ curl -X POST localhost:8080/orders/create -H 'Content-Type: application/json' \
 Now check that John's balance and Avocado stock is changed accordingly.
 
 ```shell
-curl localhost:8080/users/read/1
-curl localhost:8080/products/read/1
-curl localhost:8080/orders/read/1
+curl localhost:8080/users/read/11111111-1111-1111-1111-111111111111
+curl localhost:8080/products/read/11111111-1111-1111-1111-111111111111
+curl localhost:8080/orders/read/11111111-1111-1111-1111-111111111111
 ```
 
 # License
