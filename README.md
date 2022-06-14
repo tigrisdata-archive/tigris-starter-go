@@ -37,18 +37,15 @@ go build .
 
 ## Test the application in new terminal window
 
-Note: For repeatability of the following example, document IDs are hardcoded.
-To generate random ID, just remove "_id" field from the request.
-
 ### Insert users
 
 Run following commands to create two users: Jane and John
 
 ```shell
 curl -X POST localhost:8080/users/create -H 'Content-Type: application/json' \
-	 -d '{"Name":"John","Balance":100,"_id":"11111111-1111-1111-1111-111111111111"}'
+	 -d '{"Name":"John","Balance":100}'
 curl -X POST localhost:8080/users/create -H 'Content-Type: application/json' \
-	 -d '{"Name":"Jane","Balance":200,"_id":"22222222-2222-2222-2222-222222222222"}'
+	 -d '{"Name":"Jane","Balance":200}'
 ```
 
 ### Insert products
@@ -57,51 +54,58 @@ Run the following commands to insert two products: Avocado and Gold
 
 ```shell
 curl -X POST localhost:8080/products/create -H 'Content-Type: application/json' \
-	 -d '{"Name":"Avocado","Price":10,"Quantity":5,"_id":"11111111-1111-1111-1111-111111111111"}'
+	 -d '{"Name":"Avocado","Price":10,"Quantity":5}'
 curl -X POST localhost:8080/products/create -H 'Content-Type: application/json' \
-	 -d '{"Name":"Gold","Price":3000,"Quantity":1,"_id":"22222222-2222-2222-2222-222222222222"}'
+	 -d '{"Name":"Gold","Price":3000,"Quantity":1}'
 ```
 
 ### Place some orders
 
 #### Low balance
 
-The next order will fail because John is trying to purchase 1 unit of Gold which costs 3000,
-while John's balance is 100.
+Let's start off with an order that fails because John is trying to purchase 1
+unit of Gold that costs $3000.00, while John's balance is $100.00.
 
 ```shell
-curl -X POST localhost:8080/orders/create -H 'Content-Type: application/json' \
-	 -d '{"UserId":"11111111-1111-1111-1111-111111111111", "Products" : [{"_id":"22222222-2222-2222-2222-222222222222","Quantity":1}],"_id":"11111111-1111-1111-1111-111111111111"}'
+curl http://localhost:8080/orders/create \
+      -X POST \
+      -H 'Content-Type: application/json' \
+      -d '{"UserId":1,"Products":[{"Id":2,"Quantity":1}]}'
 ```
 
 #### Low stock
 
-The next order will fail because Jane is trying to purchase 30 Avocados which costs 300, while
-Jane's balance is 200.
+The next order fails as well because Jane is trying to purchase 10 Avocados,
+but there is only 5 in the stock.
 
 ```shell
-curl -X POST localhost:8080/orders/create -H 'Content-Type: application/json' \
-	-d '{"UserId":"11111111-1111-1111-1111-111111111111", "Products" : [{"_id":"11111111-1111-1111-1111-111111111111","Quantity":30}],"_id":"11111111-1111-1111-1111-111111111111"}'
+curl http://localhost:8080/orders/create \
+      -X POST \
+      -H 'Content-Type: application/json' \
+      -d '{"UserId":2,"Products":[{"Id":1,"Quantity":10}]}'
 ```
 
 #### Successful purchase
 
-The next order succeeds because John is purchasing 5 Avocados, which costs 50 and
-John's balance is 100, which is enough for the purchase.
+Now an order that succeeds as John purchases 5 Avocados that cost
+$50.00 and John's balance is $100.00, which is enough for the purchase.
 
 ```shell
-curl -X POST localhost:8080/orders/create -H 'Content-Type: application/json' \
-	 -d '{"UserId":"11111111-1111-1111-1111-111111111111", "Products" : [{"_id":"11111111-1111-1111-1111-111111111111","Quantity":5}],"_id":"11111111-1111-1111-1111-111111111111"}'
+curl http://localhost:8080/orders/create \
+      -X POST \
+      -H 'Content-Type: application/json' \
+      -d '{"UserId":1,"Products":[{"Id":1,"Quantity":5}]}'
 ```
 
 ### Check the balances and stock
 
-Now check that John's balance and Avocado stock is changed accordingly.
+Now go ahead and confirm that both John's balance and the Avocado stock is
+up-to-date.
 
 ```shell
-curl localhost:8080/users/read/11111111-1111-1111-1111-111111111111
-curl localhost:8080/products/read/11111111-1111-1111-1111-111111111111
-curl localhost:8080/orders/read/11111111-1111-1111-1111-111111111111
+curl http://localhost:8080/users/read/1
+curl http://localhost:8080/products/read/1
+curl http://localhost:8080/orders/read/1
 ```
 
 # License
