@@ -42,10 +42,15 @@ go build .
 Run following commands to create two users: Jane and John
 
 ```shell
-curl -X POST localhost:8080/users/create -H 'Content-Type: application/json' \
-	 -d '{"Name":"John","Balance":100}'
-curl -X POST localhost:8080/users/create -H 'Content-Type: application/json' \
-	 -d '{"Name":"Jane","Balance":200}'
+curl localhost:8080/users/create \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    -d '{"Name":"John","Balance":100}'
+    
+curl localhost:8080/users/create \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    -d '{"Name":"Jane","Balance":200}'
 ```
 
 ### Insert products
@@ -53,10 +58,15 @@ curl -X POST localhost:8080/users/create -H 'Content-Type: application/json' \
 Run the following commands to insert two products: Avocado and Gold
 
 ```shell
-curl -X POST localhost:8080/products/create -H 'Content-Type: application/json' \
-	 -d '{"Name":"Avocado","Price":10,"Quantity":5}'
-curl -X POST localhost:8080/products/create -H 'Content-Type: application/json' \
-	 -d '{"Name":"Gold","Price":3000,"Quantity":1}'
+curl localhost:8080/products/create \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    -d '{"Name":"Avocado","Price":10,"Quantity":5}'
+    
+curl localhost:8080/products/create \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    -d '{"Name":"Gold","Price":3000,"Quantity":1}'
 ```
 
 ### Place some orders
