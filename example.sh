@@ -37,6 +37,10 @@ echo
 curl localhost:8080/orders/read/1
 echo
 
+# search
+request users/search '{"q":"john"}'
+request products/search '{"q":"avocado","searchFields": ["Name"]}'
+
 kill $PID
 
 #tigris local down

@@ -118,6 +118,28 @@ curl http://localhost:8080/products/read/1
 curl http://localhost:8080/orders/read/1
 ```
 
+### Search
+Now, search for users
+
+```shell
+curl http://localhost:8080/users/search \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    -d '{"q":"john"}'
+```
+
+Or search for products named "avocado"
+
+```shell
+curl localhost:8080/products/search \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    -d '{
+        "q": "avocado",
+        "searchFields": ["Name"]
+      }'
+```
+
 # License
 
 This software is licensed under the [Apache 2.0](LICENSE).
