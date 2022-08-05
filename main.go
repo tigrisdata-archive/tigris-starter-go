@@ -11,6 +11,7 @@ import (
 	"github.com/tigrisdata/tigris-client-go/fields"
 	"github.com/tigrisdata/tigris-client-go/filter"
 	"github.com/tigrisdata/tigris-client-go/tigris"
+	"github.com/tigrisdata/tigris-client-go/search"
 )
 
 type User struct {
@@ -52,6 +53,7 @@ func setupReadRoute[T interface{}](r *gin.Engine, db *tigris.Database, name stri
 
 func setupCRUDRoutes[T interface{}](r *gin.Engine, db *tigris.Database, name string) {
 	setupReadRoute[T](r, db, name)
+	setupSearchRoute[T](r, db, name)
 
 	r.POST(fmt.Sprintf("/%s/create", name), func(c *gin.Context) {
 		coll := tigris.GetCollection[T](db)
@@ -171,6 +173,31 @@ func setupCreateOrderRoute(r *gin.Engine, db *tigris.Database) {
 		}
 
 		c.JSON(http.StatusCreated, o)
+	})
+}
+
+// Create routes for searching data in a collection
+func setupSearchRoute[T interface{}](r *gin.Engine, db *tigris.Database, name string) {
+	r.POST(fmt.Sprintf("/%s/search", name), func(c *gin.Context) {
+		coll := tigris.GetCollection[T](db)
+
+		var u search.Request
+		if err := c.Bind(&u); err != nil {
+			_ = c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+		it, err := coll.Search(c, &u)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		r := &search.Result[T]{}
+		for it.Next(r) {
+			c.JSON(http.StatusOK, r)
+		}
+		if err := it.Err(); err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		}
 	})
 }
 
