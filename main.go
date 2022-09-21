@@ -10,8 +10,8 @@ import (
 	"github.com/tigrisdata/tigris-client-go/config"
 	"github.com/tigrisdata/tigris-client-go/fields"
 	"github.com/tigrisdata/tigris-client-go/filter"
-	"github.com/tigrisdata/tigris-client-go/tigris"
 	"github.com/tigrisdata/tigris-client-go/search"
+	"github.com/tigrisdata/tigris-client-go/tigris"
 )
 
 type User struct {
@@ -205,8 +205,13 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	db, err := tigris.OpenDatabase(ctx, &config.Database{Driver: config.Driver{URL: "localhost:8081"}},
-		"shop", &User{}, &Product{}, &Order{})
+	// Cloud config
+	//tigrisCfg := config.Driver{URL: "api.preview.tigrisdata.cloud:443", ApplicationId: "your-tigris-app-id", ApplicationSecret: "your-tigris-app-secret"}
+
+	// Local config
+	tigrisCfg := config.Driver{URL: "localhost:8081"}
+	db, err := tigris.OpenDatabase(ctx, &config.Database{Driver: tigrisCfg}, "shop", &User{}, &Product{}, &Order{})
+
 	if err != nil {
 		panic(err)
 	}
