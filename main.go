@@ -206,7 +206,7 @@ func main() {
 	defer cancel()
 
 	// Cloud config
-	//tigrisCfg := config.Driver{URL: "api.preview.tigrisdata.cloud:443", ApplicationId: "your-tigris-app-id", ApplicationSecret: "your-tigris-app-secret"}
+	//tigrisCfg := config.Driver{URL: "api.preview.tigrisdata.cloud:443", ClientID: "your-tigris-app-id", ClientSecret: "your-tigris-app-secret"}
 
 	// Local config
 	tigrisCfg := config.Driver{URL: "localhost:8081"}
