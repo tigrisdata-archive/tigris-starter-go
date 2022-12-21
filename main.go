@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tigrisdata/tigris-client-go/config"
 	"github.com/tigrisdata/tigris-client-go/fields"
 	"github.com/tigrisdata/tigris-client-go/filter"
 	"github.com/tigrisdata/tigris-client-go/search"
@@ -206,11 +205,11 @@ func main() {
 	defer cancel()
 
 	// Cloud config
-	//tigrisCfg := config.Driver{URL: "api.preview.tigrisdata.cloud:443", ClientID: "your-tigris-app-id", ClientSecret: "your-tigris-app-secret"}
+	// tigrisCfg := tigris.Config{URL: "api.preview.tigrisdata.cloud:443", ClientID: "your-tigris-app-id", ClientSecret: "your-tigris-app-secret", Project: "shop"}
 
 	// Local config
-	tigrisCfg := config.Driver{URL: "localhost:8081"}
-	db, err := tigris.OpenDatabase(ctx, &config.Database{Driver: tigrisCfg}, "shop", &User{}, &Product{}, &Order{})
+	tigrisCfg := tigris.Config{URL: "localhost:8081", Project: "shop"}
+	db, err := tigris.OpenDatabase(ctx, &tigrisCfg, &User{}, &Product{}, &Order{})
 
 	if err != nil {
 		panic(err)
